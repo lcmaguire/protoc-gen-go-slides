@@ -1,0 +1,294 @@
+# Writing protoc-plugins in go
+
+## info
+
+[https://github.com/lcmaguire](https://github.com/lcmaguire)
+
+[linkedin](https://www.linkedin.com/in/liamcmaguire/)
+
+## goal(s)
+
+- protoc 
+- protoc-plugin
+- proto
+- gRPC
+- go
+
+## proto
+
+Protocol Buffers are language-neutral, platform-neutral extensible mechanisms for serializing structured data.
+
+
+## proto fields 
+
+[full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
+
+- repeated for arrays
+- optional to indicate optional for scalar types
+
+```proto
+message SearchRequest {
+  string query = 1;
+  int32 page_number = 2;
+  int32 results_per_page = 3;
+  Corpus corpus = 4; // enum 
+  bool active = 5;
+  repeated string tags = 6;
+  optional string regex = 7;
+}
+
+enum Corpus {
+  CORPUS_UNSPECIFIED = 0;
+  CORPUS_UNIVERSAL = 1;
+  ....
+}
+```
+
+## go representation
+
+```go
+type SearchRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Query          string   `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
+	PageNumber     int32    `protobuf:"varint,2,opt,name=page_number,json=pageNumber,proto3" json:"page_number,omitempty"`
+	ResultsPerPage int32    `protobuf:"varint,3,opt,name=results_per_page,json=resultsPerPage,proto3" json:"results_per_page,omitempty"`
+	Corpus         Corpus   `protobuf:"varint,4,opt,name=corpus,proto3,enum=example.Corpus" json:"corpus,omitempty"`
+	Active         bool     `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
+	Tags           []string `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty"`
+    Regex          *string  `protobuf:"bytes,7,opt,name=regex,proto3,oneof" json:"regex,omitempty"`
+}
+```
+
+```go
+type Corpus int32
+
+const (
+	Corpus_CORPUS_UNSPECIFIED Corpus = 0
+	Corpus_CORPUS_UNIVERSAL   Corpus = 1
+)
+```
+
+## proto encoding
+
+the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messages is based upon field number 
+
+- numbers from 1-15 take 1 byte to encode 
+- numbers from 16 through 2047 take up 2 bytes
+
+
+## proto encoding vs json comparison 
+
+```proto 
+message Account {
+    string user_id = 1;
+    string display_name = 2;
+    int32 post_count = 3;
+    bool active = 4;
+    AccountType account_type = 5;
+}
+```
+
+json representation which is 125B
+```json 
+{
+    "user_id":"fcfca151-f887-41a3-88d4-98192efad2d9",
+    "display_name":"Teresa Green",
+    "post_count":100,
+    "active":true,
+    "account_type":1
+}
+```
+
+when proto encoded is only 58 bytes
+```
+[10 36 54 100 49 99 102 100 51 97 45 51 55 101 100 45 52 48 99 57 45 98 48 57 49 45 99 100 100 99 52 53 102 57 51 56 99 100 18 12 84 101 114 101 115 97 32 71 114 101 101 110 24 100 32 1 40 1]
+```
+
+
+## Custom, Well known & common types 
+
+
+```proto 
+import "myproject/example.proto";
+
+message MyMessage {
+    myproject.Example example = 1;
+    ...
+}
+```
+
+[Types defined by google](https://protobuf.dev/programming-guides/dos-donts/#well-known-common) that get generated across multiple languages for common use cases so you don't have to.
+
+
+## oneofs
+
+[oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) are a way in which only one potential posibility is required
+
+```proto
+message Payment {
+  ....  
+  oneof payment_destination {
+    Account account = 4;
+    Bpay bpay = 5;
+    PayID pay_id = 6
+  }
+}
+```
+
+
+## Services
+
+a way to define API's 
+
+``` proto
+// The greeting service definition.
+service Greeter {
+  // Unary RPC
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+
+  // server streaming RPC
+  rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse);
+  // Client stream RPC
+  rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse);
+  // Bidirectional stream RPC
+  rpc BidiHello(stream HelloRequest) returns (stream HelloResponse);
+}
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
+```
+
+## options
+
+[options](https://protobuf.dev/programming-guides/proto3/#options) a way to describe elements within your defind files, services, messages or fields.
+
+[types of descriptors available](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto)
+
+don't change the overall meaning of a declaration, but may affect the way it is handled in a particular context.
+
+- define validation rules for a field/message
+- declare scopes required for a service / method
+- declare an element as deprecated  
+
+
+## gRPC
+
+
+- g(oogle, general-purpose, generic)
+
+.image ./assets/grpc-definition.png
+
+Remote Procedure Call
+
+```go
+
+res, err := grpcClient.CallRpc(ctx, request)
+
+```
+
+## gRPC 2
+
+.image ./assets/grpc-flow.png
+
+- simple service definition
+- generates client and server interfaces for a large variety of languages
+- streaming supported without any additional overhead
+
+
+## protoc
+
+compiler for proto files
+
+.image ./assets/protocol-buffers-concepts.png
+
+## protoc-plugin
+
+something you can write which will plug in to the protoc compiler
+
+
+## Why write a protoc-plugin?
+
+- get go code from your defined messages
+- gen documentation
+- additional functionality
+- custom business cases
+
+##  Example plugins
+
+- [go-setters](https://github.com/lcmaguire/protoc-gen-go-setters)
+- [validate](https://github.com/bufbuild/protoc-gen-validate)
+- [gen-doc](https://github.com/pseudomuto/protoc-gen-doc)
+- [protoc-gen-bq-schema](https://github.com/GoogleCloudPlatform/protoc-gen-bq-schema)
+- [protoc-gen-fieldmask](https://github.com/idodod/protoc-gen-fieldmask)
+
+
+## invoking a plugin
+
+taken from [protobuf.dev](https://protobuf.dev/getting-started/gotutorial/#compiling-protocol-buffers)
+```
+protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/addressbook.proto
+```
+
+personal recomendation is to use buf cli 
+
+```
+    buf generate
+```
+
+<details><summary>buf.yaml</summary>
+
+.code ./examples/buf.yaml
+
+</details>
+
+
+<details><summary>buf.gen.yaml</summary>
+
+.code ./examples/buf.gen.yaml
+</details>
+
+## implementing a plugin
+
+
+- must be an executable named `protoc-gen-{plugin_name}`
+- will hang unless it recieves a [CodeGeneratorRequest](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorRequest)
+ 
+
+## Suggestions
+
+
+- use [CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorResponse_Feature)
+
+
+## Deets
+
+- protogen.Options to parse any flags for any arguments
+- Run for implementing all files
+
+depending upon desired outcome iterate over
+- files
+- services
+- messages
+- fields of messages
+
+
+
+##  Takeaways
+
+- use buf cli 
+- import proto 3 option 
+- convert maps to ordered arrays when writing files (to have output deterministic)
+- use File to limit generated code to current file
+- iterating over fields e.t.c (mention covered by james)  
+
+
