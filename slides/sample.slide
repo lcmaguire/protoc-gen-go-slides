@@ -18,58 +18,16 @@
 
 Protocol Buffers are language-neutral, platform-neutral extensible mechanisms for serializing structured data.
 
-
 ## proto fields 
 
-[full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
 
-- repeated for arrays
-- optional to indicate optional for scalar types
-
-```proto
-message SearchRequest {
-  string query = 1;
-  int32 page_number = 2;
-  int32 results_per_page = 3;
-  Corpus corpus = 4; // enum 
-  bool active = 5;
-  repeated string tags = 6;
-  optional string regex = 7;
-}
-
-enum Corpus {
-  CORPUS_UNSPECIFIED = 0;
-  CORPUS_UNIVERSAL = 1;
-  ....
-}
-```
+.code ../proto/sample.proto /^message User/,/^}/
 
 ## go representation
 
-```go
-type SearchRequest struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
+.code ../proto/sample.pb.go /^type User/,/^}/
 
-	Query          string   `protobuf:"bytes,1,opt,name=query,proto3" json:"query,omitempty"`
-	PageNumber     int32    `protobuf:"varint,2,opt,name=page_number,json=pageNumber,proto3" json:"page_number,omitempty"`
-	ResultsPerPage int32    `protobuf:"varint,3,opt,name=results_per_page,json=resultsPerPage,proto3" json:"results_per_page,omitempty"`
-	Corpus         Corpus   `protobuf:"varint,4,opt,name=corpus,proto3,enum=example.Corpus" json:"corpus,omitempty"`
-	Active         bool     `protobuf:"varint,5,opt,name=active,proto3" json:"active,omitempty"`
-	Tags           []string `protobuf:"bytes,6,rep,name=tags,proto3" json:"tags,omitempty"`
-    Regex          *string  `protobuf:"bytes,7,opt,name=regex,proto3,oneof" json:"regex,omitempty"`
-}
-```
 
-```go
-type Corpus int32
-
-const (
-	Corpus_CORPUS_UNSPECIFIED Corpus = 0
-	Corpus_CORPUS_UNIVERSAL   Corpus = 1
-)
-```
 
 ## proto encoding
 
@@ -108,27 +66,53 @@ when proto encoded is only 58 bytes
 ```
 
 
-## Custom, Well known & common types 
-
-
-```proto 
-import "myproject/example.proto";
-
-message MyMessage {
-    myproject.Example example = 1;
-    ...
-}
-```
-
-[Types defined by google](https://protobuf.dev/programming-guides/dos-donts/#well-known-common) that get generated across multiple languages for common use cases so you don't have to.
-
-
 ## oneofs
 
 [oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) are a way in which only one potential posibility is required
 
+.code ../proto/sample.proto /^message Post/,/^}/
+
+## oneofs go 
+
+.code ../proto/sample.pb.go /^type Post /,/^}/
+
+## oneofs go 1
+
+
+.code ../proto/sample.pb.go /^type isPost_PostContent interface/,/^}/
+
+```go
+type Post_Audio struct {
+	// audio post
+	Audio *Audio `protobuf:"bytes,4,opt,name=audio,proto3,oneof"`
+}
+
+type Post_Video struct {
+	// video post
+	Video *Video `protobuf:"bytes,5,opt,name=video,proto3,oneof"`
+}
+
+type Post_Text struct {
+	// text post
+	Text string `protobuf:"bytes,6,opt,name=text,proto3,oneof"`
+}
+
+func (*Post_Audio) isPost_PostContent() {}
+
+func (*Post_Video) isPost_PostContent() {}
+
+func (*Post_Text) isPost_PostContent() {}
+```
+
+## real world scenario
+
 ```proto
 message Payment {
+
+  Account payment_origin = 1;
+
+  google.Money amount = 2;
+
   ....  
   oneof payment_destination {
     Account account = 4;
@@ -138,17 +122,23 @@ message Payment {
 }
 ```
 
+## Helpful links
+
+- [oneofs](https://protobuf.dev/programming-guides/proto3/#oneof)
+- [Well known types](https://protobuf.dev/programming-guides/dos-donts/#well-known-common)
+- [full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
+- [wellknown types](https://protobuf.dev/reference/protobuf/google.protobuf/)
+
 
 ## Services
 
 a way to define API's 
 
-``` proto
-// The greeting service definition.
-service Greeter {
-  // Unary RPC
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
+.code ../proto/sample.proto /^service PostService {/,/^}/
 
+Streaming declarations
+``` proto
+service StreamingExample {
   // server streaming RPC
   rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse);
   // Client stream RPC
@@ -157,28 +147,32 @@ service Greeter {
   rpc BidiHello(stream HelloRequest) returns (stream HelloResponse);
 }
 
-// The request message containing the user's name.
-message HelloRequest {
-  string name = 1;
-}
-
-// The response message containing the greetings
-message HelloReply {
-  string message = 1;
-}
 ```
 
-## options
+## show service gen code
 
-[options](https://protobuf.dev/programming-guides/proto3/#options) a way to describe elements within your defind files, services, messages or fields.
+Client Interface to implement
 
-[types of descriptors available](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto)
+.code ../proto/sample_grpc.pb.go /^type PostServiceClient interface {/,/^}/
+
+Server interface to implement 
+
+.code ../proto/sample_grpc.pb.go /^type PostServiceServer interface {/,/^}/
+
+
+
+## options / descriptors
+
+// todo work this into differing examples.
+
+[options](https://protobuf.dev/programming-guides/proto3/#options) a way to describe elements within your defined files, services, messages or fields.
 
 don't change the overall meaning of a declaration, but may affect the way it is handled in a particular context.
 
-- define validation rules for a field/message
-- declare scopes required for a service / method
-- declare an element as deprecated  
+- file descriptor (language specific package i.e. golang / java package)
+- service descriptor some definition/behaviour for all methods in a service
+- method descriptor scopes required, http format, idempotency
+- message/field descriptor define validation rules for a field/message
 
 
 ## gRPC
@@ -236,7 +230,7 @@ something you can write which will plug in to the protoc compiler
 
 taken from [protobuf.dev](https://protobuf.dev/getting-started/gotutorial/#compiling-protocol-buffers)
 ```
-protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/addressbook.proto
+  protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/addressbook.proto
 ```
 
 personal recomendation is to use buf cli 

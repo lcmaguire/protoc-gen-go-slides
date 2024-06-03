@@ -1,16 +1,11 @@
-# protoc-gen-go-presentation
+# protoc-gen-go-slides
 
 
 writing protoc plugins in go
 
 
+uses go tool [present](https://pkg.go.dev/golang.org/x/tools/present) to run presentation
 
-Thinking of having more info for
-
-- what gRPC looks like in go
-- gRPC generated code
-
-
-using present for writing slides
-
-https://pkg.go.dev/golang.org/x/tools/present
+```
+    present
+```

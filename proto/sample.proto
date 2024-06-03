@@ -1,0 +1,124 @@
+// specify syntax, should be specifying syntax3.
+syntax = "proto3";
+
+// declare proto package
+package example;
+
+// specify the go package to which it will belong
+option go_package = "github.com/lcmaguire/protoc-gen-go" ;
+
+// importing well known type
+import "google/protobuf/timestamp.proto";
+
+
+service UserService {
+  // ListUsers is used to list a new post.
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse) {}
+}
+
+message User {
+  // UserID a uuid for a user.
+  string user_id = 1;
+
+  // DisplayName human readable representation of a users name.
+  string display_name = 2;
+
+  // Verified if the user is verified or not.
+  bool verified = 3; 
+
+  // CreateTimestamp is a timestamp for account creation date using google's well known type.
+  google.protobuf.Timestamp create_time = 4;
+
+  // PostCount is the number of posts made by a user.
+  int32 post_count = 5;
+
+  // Interests contains a set of tags that this user is interested in.
+  repeated string interests = 7;
+
+  // Membership what membership the user is on.
+  MembershipType membership = 8;
+}
+
+message ListUsersRequest {
+  // size of elements to return
+  int32 page_size = 1;
+
+  // filter request for tags.
+  repeated string tag_filters = 2;
+
+  // use returned page token to get next page.
+  string page_token = 3;
+}
+
+message ListUsersResponse {
+  repeated User users = 1;
+  string next_page_token = 2;
+}
+
+
+// https://google.aip.dev/126
+enum MembershipType {
+  // Default value. This value is unused.
+  MEMBERSHIP_UNSPECIFIED = 0;
+  // standard membership option
+  MEMBERSHIP_FREE = 1;
+  // paid membership which gives user access to certain features / no ads
+  MEMBERSHIP_PREMIUM = 2;
+  // gives user access to even more than premium
+  MEMBERSHIP_PLATINUM = 4;
+}
+
+// The Post Service definition.
+service PostService {
+  // CreatePost is used to create a new post.
+  rpc CreatePost (CreatePostRequest) returns (Post) {}
+  // ListPosts is used to list a new post.
+  rpc ListPosts (CreatePostRequest) returns (ListPostsResponse) {}
+}
+
+message ListPostsRequest {
+  // size of elements to return
+  int32 page_size = 1;
+
+  // filter request for tags.
+  repeated string tag_filters = 2;
+
+  // use returned page token to get next page.
+  string page_token = 3;
+}
+
+message ListPostsResponse {
+  repeated Post posts = 1;
+  string next_page_token = 2;
+}
+
+message CreatePostRequest {
+  Post post = 1;
+}
+
+message Post {
+  // AuthorID the user_id of the author of this post.
+  string author_id = 1;
+
+  // Title of the post
+  string title = 2;
+
+  oneof post_content {
+    // Audio content is used for this post.
+    Audio audio = 3;
+
+    // Video content is used for this post.
+    Video video = 4;
+
+    // Text post content consists only of text.
+    string text = 5;
+  }
+}
+
+message Audio {
+  // hypothetical audio messages.  
+}
+
+message Video {
+  // hypothetical audio messages.  
+}
