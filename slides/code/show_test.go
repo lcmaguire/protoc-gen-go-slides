@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	protoc_gen_go "github.com/lcmaguire/protoc-gen-go/proto"
+	protoc_gen_go "github.com/lcmaguire/protoc-gen-go-slides/example"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 

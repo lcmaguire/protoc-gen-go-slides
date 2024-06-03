@@ -18,15 +18,19 @@
 
 Protocol Buffers are language-neutral, platform-neutral extensible mechanisms for serializing structured data.
 
+.code ../example/sample.proto
+
+## proto - enum 
+
+.code ../example/sample.proto /^enum MembershipType/,/^}/
+
 ## proto fields 
 
-
-.code ../proto/sample.proto /^message User/,/^}/
+.code ../example/sample.proto /^message User/,/^}/
 
 ## go representation
 
-.code ../proto/sample.pb.go /^type User/,/^}/
-
+.code ../example/sample.pb.go /^type User/,/^}/
 
 
 ## proto encoding
@@ -70,16 +74,16 @@ when proto encoded is only 58 bytes
 
 [oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) are a way in which only one potential posibility is required
 
-.code ../proto/sample.proto /^message Post/,/^}/
+.code ../example/sample.proto /^message Post/,/^}/
 
 ## oneofs go 
 
-.code ../proto/sample.pb.go /^type Post /,/^}/
+.code ../example/sample.pb.go /^type Post /,/^}/
 
 ## oneofs go 1
 
 
-.code ../proto/sample.pb.go /^type isPost_PostContent interface/,/^}/
+.code ../example/sample.pb.go /^type isPost_PostContent interface/,/^}/
 
 ```go
 type Post_Audio struct {
@@ -128,13 +132,17 @@ message Payment {
 - [Well known types](https://protobuf.dev/programming-guides/dos-donts/#well-known-common)
 - [full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
 - [wellknown types](https://protobuf.dev/reference/protobuf/google.protobuf/)
-
+- [enums](https://protobuf.dev/programming-guides/proto3/#enum)
 
 ## Services
 
 a way to define API's 
 
-.code ../proto/sample.proto /^service PostService {/,/^}/
+.code ../example/sample.proto /^service PostService {/,/^}/
+
+will serve traffic on {baseURL}/{package}.{service}/{method}
+
+- cloud.run/example.PostService/CreatePost
 
 Streaming declarations
 ``` proto
@@ -153,11 +161,11 @@ service StreamingExample {
 
 Client Interface to implement
 
-.code ../proto/sample_grpc.pb.go /^type PostServiceClient interface {/,/^}/
+.code ../example/sample_grpc.pb.go /^type PostServiceClient interface {/,/^}/
 
 Server interface to implement 
 
-.code ../proto/sample_grpc.pb.go /^type PostServiceServer interface {/,/^}/
+.code ../example/sample_grpc.pb.go /^type PostServiceServer interface {/,/^}/
 
 
 

@@ -5,11 +5,10 @@ syntax = "proto3";
 package example;
 
 // specify the go package to which it will belong
-option go_package = "github.com/lcmaguire/protoc-gen-go" ;
+option go_package = "github.com/lcmaguire/protoc-gen-go-slides/example" ;
 
-// importing well known type
+// importing type
 import "google/protobuf/timestamp.proto";
-
 
 service UserService {
   // ListUsers is used to list a new post.
