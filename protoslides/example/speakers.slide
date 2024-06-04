@@ -1,0 +1,105 @@
+# protoc slides for example/speakers
+
+
+## Service - SpeakerService
+
+
+## Method - ListSpeakers
+
+
+FullName: example.SpeakerService.ListSpeakers
+
+
+Comments:  ListTalks is used to get all talks according to any provided query params within ListTalksRequest
+
+
+
+## Method - ListSpeakers Request
+
+
+Type: example.ListSpeakersRequest
+
+
+```
+{
+  "page_size": 1,
+  "speaker_name": ""
+}
+```
+
+## Method - ListSpeakers Response
+
+Type: example.ListSpeakersResponse
+
+
+
+```
+{
+  "next_page_token": "",
+  "speakers": [
+    {
+      "approved": true,
+      "display_name": "",
+      "github_url": "",
+      "speaker_id": "",
+      "talks": [
+        ""
+      ]
+    }
+  ]
+}
+```
+
+
+## Method - CreateSpeaker
+
+
+FullName: example.SpeakerService.CreateSpeaker
+
+
+Comments:  CreateSpeaker is used to get all talks according to any provided query params within ListTalksRequest
+
+
+
+## Method - CreateSpeaker Request
+
+
+Type: example.CreateSpeakerRequest
+
+
+```
+{
+  "speaker": {
+    "approved": true,
+    "display_name": "",
+    "github_url": "",
+    "speaker_id": "",
+    "talks": [
+      ""
+    ]
+  }
+}
+```
+
+## Method - CreateSpeaker Response
+
+Type: example.Speaker
+
+Message Comments:  Speaker represents the speaker who can present a talk.
+
+
+
+
+```
+{
+  "approved": true,
+  "display_name": "",
+  "github_url": "",
+  "speaker_id": "",
+  "talks": [
+    ""
+  ]
+}
+```
+
+

@@ -1,0 +1,51 @@
+syntax = "proto3"; // specify syntax, should be specifying syntax3.
+
+// declare proto package
+package example;
+
+// specify the go package to which it will belong
+option go_package = "github.com/lcmaguire/protoc-gen-go-slides/example" ;
+
+// importing type
+import "google/protobuf/timestamp.proto";
+
+// TalkService used for getting go guild talks.
+service TalkService {
+
+  // ListTalks is used to get all talks according to any provided query params within ListTalksRequest
+  rpc ListTalks (ListTalksRequest) returns (ListTalksResponse) {}
+
+  // ListTalks is used to get all talks according to any provided query params within ListTalksRequest
+  rpc CreateTalks (CreateTalksRequest) returns (Talk) {}
+}
+
+message ListTalksRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+  string speaker_id = 3;
+}
+
+
+message ListTalksResponse {
+  repeated Talk talks = 1;
+  string next_page_token = 2;
+}
+
+
+message CreateTalksRequest {
+  Talk talk = 1;
+}
+
+
+// Talk represents a talk.
+message Talk {
+
+  // TalkID unique identifier for a Talk.
+  string talk_id = 1;
+
+  // TalkTime is the date a timestamp for a Talk's occurrence.
+  google.protobuf.Timestamp talk_time = 2;
+
+  // Speaker a reference to the id of the speaker.
+  string speaker = 3;
+}

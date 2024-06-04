@@ -6,6 +6,9 @@ plugins:
   - name: go-grpc
     out: .
     opt: paths=source_relative
+  - name: go-slides
+    out: .
+    opt: paths=source_relative
   - name: go-setters
     out: .
     opt: paths=source_relative
