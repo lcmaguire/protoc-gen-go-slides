@@ -65,15 +65,39 @@ Interests []string `protobuf:"bytes,7,rep,name=interests,proto3" json:"interests
 ## go getter methods
 proto
 ```
-string page_token = 2;
+int32 page_size = 2;
 ```
 go
 ```
-func (x *ListTalksRequest) GetPageToken() string {
+func (x *ListTalksRequest) GetPageSize() int32 {
 	if x != nil {
-		return x.PageToken
+		return x.PageSize
 	}
 	return ""
+}
+```
+
+## Using generated methods
+
+```
+type PageSizer interface {
+	GetPageSize() int32
+}
+
+func HandlePageSize(in PageSizer) (int32, error) {
+	if in.GetPageSize() < 0 {
+		return -1, errors.New("invalid cannot be less than 0")
+	}
+
+	if in.GetPageSize() > 1000 {
+		return 1000, nil
+	}
+
+	if in.GetPageSize() == 0 {
+		return 25, nil
+	}
+
+	return in.GetPageSize(), nil
 }
 ```
 
@@ -272,7 +296,7 @@ compiler for proto files
 
 ## protoc-plugin
 
-something you can write which will plug in to the protoc compiler
+something that plugs in to the protoc compiler
 
 
 ## Why write a protoc-plugin?
@@ -429,7 +453,22 @@ func PaginateNextToken[RequestType PageTokenRequest, ResponseType NextPageTokenR
 }
 ```
 
+## Using the package
 
+```
+count := 0
+maxPages := 5
+err := PaginateNextToken(ctx,
+    &example.ListExampleRequest{}, // pass in req.
+    rpc.ListExamples, // pass in RPC.
+    func(ctx context.Context, response *example.ListExamplesResponse) bool {
+	count++
+	return count == expectedCount // define your exit condition
+})
+if err != nil {
+    return nil, err
+}
+```
 
 ## invoking a plugin
 
@@ -438,7 +477,19 @@ taken from [protobuf.dev](https://protobuf.dev/getting-started/gotutorial/#compi
   protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/addressbook.proto
 ```
 
-personal recommendation is to use buf cli
+from go invocation [here](https://protobuf.dev/reference/go/go-generated/#invocation)
+
+```
+protoc --proto_path=src \
+  --go_opt=Mprotos/buzz.proto=example.com/project/protos/fizz \
+  --go_opt=Mprotos/bar.proto=example.com/project/protos/foo \
+  protos/buzz.proto protos/bar.proto
+```
+
+## better way
+
+
+personal recommendation is to use [buf cli](https://buf.build/product/cli)
 
 ```
     buf generate
@@ -465,7 +516,7 @@ personal recommendation is to use buf cli
 
 ## Suggestions
 
-- if your plugin is language specific include the language in your plugin name i.e `protoc-gen-{Language}-{Plugin}`
+- if your plugin is language specific include the language in your plugin name i.e `protoc-gen-{Language}-{Plugin}` for refrence [plugin.h](https://protobuf.dev/reference/cpp/api-docs/google.protobuf.compiler.plugin/)
 - use [CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorResponse_Feature)
 - Skip files not directly included in code generator request
 - use protogen.Options to parse any flags/config for your plugin
