@@ -1,17 +1,17 @@
 # Writing protoc-plugins in go
 
-## info
+Liam Maguire
 
-[https://github.com/lcmaguire](https://github.com/lcmaguire)
+https://github.com/lcmaguire
+https://www.linkedin.com/in/liamcmaguire
 
-[linkedin](https://www.linkedin.com/in/liamcmaguire/)
 
 ## goal(s)
 
-- protoc 
-- protoc-plugin
-- proto
-- gRPC
+- protoc - proto compiler
+- protoc-plugin - something that plugs in to the compiler
+- proto - language-neutral, platform-neutral, extensible mechanism for serializing structured data
+- gRPC - general purpose RPC framework that uses HTTP/2.
 - go
 
 ## proto
@@ -20,7 +20,7 @@ Protocol Buffers are language-neutral, platform-neutral extensible mechanisms fo
 
 .code ../example/sample.proto
 
-## proto fields 
+## proto messages & fields
 
 .code ../example/sample.proto /^message User/,/^}/
 
@@ -58,11 +58,11 @@ in go
 Interests []string `protobuf:"bytes,7,rep,name=interests,proto3" json:"interests,omitempty"`
 ```
 
-## go struct
+## Go generated structs
 
 .code ../example/sample.pb.go /^type User/,/^}/
 
-## go getter methods
+## Go generated getter methods
 proto
 ```
 int32 page_size = 2;
@@ -101,7 +101,7 @@ func HandlePageSize(in PageSizer) (int32, error) {
 }
 ```
 
-## proto encoding
+## Proto encoding
 
 the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messages is based upon field number 
 
@@ -109,7 +109,9 @@ the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messa
 - numbers from 16 through 2047 take up 2 bytes
 
 
-## proto encoding vs json comparison 
+## Proto encoding vs json comparison
+
+// normally the only time you are concerned with having less bites is when you are on a diet.
 
 ```proto 
 message Account {
@@ -138,17 +140,18 @@ when proto encoded is only 58 bytes
 ```
 
 
-## oneofs
+## Oneofs
 
-[oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) are a way in which only one potential posibility is required
+[oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) If you have a message with many fields and where at most one field will be set at the same time, you can enforce this behavior and save memory by using the oneof feature.
+
 
 .code ../example/sample.proto /^message Post/,/^}/
 
-## oneofs go 
+## Go generated oneofs
 
 .code ../example/sample.pb.go /^type Post /,/^}/
 
-## oneofs go 1
+## Go generated oneofs 2
 
 .code ../example/sample.pb.go /^type isPost_PostContent interface/,/^}/
 
@@ -175,7 +178,7 @@ func (*Post_Video) isPost_PostContent() {}
 func (*Post_Text) isPost_PostContent() {}
 ```
 
-## real world scenario
+## Real world use case
 
 ```proto
 message Payment {
@@ -212,9 +215,9 @@ res, err := grpcClient.CallRpc(ctx, request)
 
 .image ./assets/grpc-flow.png
 
-- simple service definition
-- generates client and server interfaces for a large variety of languages
-- streaming supported without any additional overhead
+//- simple service definition
+//- generates client and server interfaces for a large variety of languages
+//- streaming supported without any additional overhead
 
 
 
@@ -290,7 +293,7 @@ service MyService {
 
 ## protoc
 
-compiler for proto files
+compiler that turns proto files into language specific files.
 
 .image ./assets/protocol-buffers-concepts.png
 
@@ -315,7 +318,7 @@ Example plugins
 - [protoc-gen-fieldmask](https://github.com/idodod/protoc-gen-fieldmask)
 
 
-## Realworld scenario
+## RealWorld scenario
 
 [protoc-gen-go-setters](https://github.com/lcmaguire/protoc-gen-go-setters)
 
@@ -476,9 +479,13 @@ taken from [protobuf.dev](https://protobuf.dev/getting-started/gotutorial/#compi
 ```
   protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/addressbook.proto
 ```
+The protocol compiler searches for imported files in a set of directories specified on the protocol compiler command line using the -I/--proto_path flag.
+
+```
+protoc --proto_path=IMPORT_PATH --cpp_out=DST_DIR --java_out=DST_DIR --python_out=DST_DIR --go_out=DST_DIR --ruby_out=DST_DIR --objc_out=DST_DIR --csharp_out=DST_DIR path/to/file.proto
+```
 
 from go invocation [here](https://protobuf.dev/reference/go/go-generated/#invocation)
-
 ```
 protoc --proto_path=src \
   --go_opt=Mprotos/buzz.proto=example.com/project/protos/fizz \
@@ -510,13 +517,13 @@ personal recommendation is to use [buf cli](https://buf.build/product/cli)
 ## musts when implementing a plugin
 
 
-- must be an executable named `protoc-gen-{plugin_name}`
+- must be an executable named `protoc-gen-{plugin_name}` for reference [plugin.h](https://protobuf.dev/reference/cpp/api-docs/google.protobuf.compiler.plugin/)
 - will hang unless it receives a [CodeGeneratorRequest](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorRequest)
  
 
 ## Suggestions
 
-- if your plugin is language specific include the language in your plugin name i.e `protoc-gen-{Language}-{Plugin}` for refrence [plugin.h](https://protobuf.dev/reference/cpp/api-docs/google.protobuf.compiler.plugin/)
+- if your plugin is language specific include the language in your plugin name i.e `protoc-gen-{Language}-{Plugin}`
 - use [CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorResponse_Feature)
 - Skip files not directly included in code generator request
 - use protogen.Options to parse any flags/config for your plugin
@@ -538,3 +545,4 @@ personal recommendation is to use [buf cli](https://buf.build/product/cli)
 - [full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
 - [wellknown types](https://protobuf.dev/reference/protobuf/google.protobuf/)
 - [enums](https://protobuf.dev/programming-guides/proto3/#enum)
+- [paths=source_relative](https://protobuf.dev/reference/go/go-generated/#invocation)

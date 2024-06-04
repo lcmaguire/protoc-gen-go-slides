@@ -31,7 +31,7 @@ func main() {
 			}
 
 			// determine file name GeneratedFilenamePrefix will get the generated file to be aligned with the written proto file.
-			// second parameter is the go import path, normally "" or ".".
+			// second parameter is the go import path + any alterations you make. normally "" or "." otherwise.
 			generatedFile := gen.NewGeneratedFile("protoslides/"+file.GeneratedFilenamePrefix+".slide", "")
 
 			generatedFile.P("# protoc slides for " + file.GeneratedFilenamePrefix)
