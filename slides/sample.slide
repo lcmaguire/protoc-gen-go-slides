@@ -84,17 +84,17 @@ type PageSizer interface {
 	GetPageSize() int32
 }
 
-func HandlePageSize(in PageSizer) (int32, error) {
+func HandlePageSize(in PageSizer, defaultPageSize int32, maxPageSize int32) (int32, error) {
 	if in.GetPageSize() < 0 {
 		return -1, errors.New("invalid cannot be less than 0")
 	}
 
-	if in.GetPageSize() > 1000 {
-		return 1000, nil
+	if in.GetPageSize() > maxPageSize {
+		return maxPageSize, nil
 	}
 
 	if in.GetPageSize() == 0 {
-		return 25, nil
+		return defaultPageSize, nil
 	}
 
 	return in.GetPageSize(), nil
@@ -103,7 +103,7 @@ func HandlePageSize(in PageSizer) (int32, error) {
 
 ## Proto encoding
 
-the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messages is based upon field number 
+the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messages is based upon field number & field type
 
 - numbers from 1-15 take 1 byte to encode 
 - numbers from 16 through 2047 take up 2 bytes
@@ -223,7 +223,6 @@ res, err := grpcClient.CallRpc(ctx, request)
 
 ## Services
 
-a way to define API's 
 
 .code ../example/sample.proto /^service PostService {/,/^}/
 
@@ -231,7 +230,7 @@ will serve traffic on {baseURL}/{package}.{service}/{method}
 
 - cloud.run/example.PostService/CreatePost
 
-Streaming declarations
+Streaming RPC declarations
 ``` proto
 service StreamingExample {
   // server streaming RPC
@@ -520,6 +519,17 @@ personal recommendation is to use [buf cli](https://buf.build/product/cli)
 - must be an executable named `protoc-gen-{plugin_name}` for reference [plugin.h](https://protobuf.dev/reference/cpp/api-docs/google.protobuf.compiler.plugin/)
 - will hang unless it receives a [CodeGeneratorRequest](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorRequest)
  
+
+## Slides example
+
+will show a plugin I threw together today to go over some common problems faced
+
+
+## Setters go generation
+
+[setting package](https://github.com/lcmaguire/protoc-gen-go-setters/blob/main/main.go#L33)
+[using templates](https://github.com/lcmaguire/protoc-gen-go-setters/blob/main/main.go#L189)
+
 
 ## Suggestions
 

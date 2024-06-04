@@ -21,7 +21,7 @@ service TalkService {
 
 message ListTalksRequest {
   int32 page_size = 1;
-  string page_token = 2;
+  optional string page_token = 2;
   string speaker_id = 3;
 }
 
