@@ -11,7 +11,11 @@ option go_package = "github.com/lcmaguire/protoc-gen-go-slides/example" ;
 import "google/protobuf/timestamp.proto";
 
 service UserService {
+
   // ListUsers is used to list a new post.
+  //
+  // will return users based upon the appropriate filters and request provided.
+  // abcdefg
   rpc ListUsers (ListUsersRequest) returns (ListUsersResponse) {}
 }
 
@@ -55,7 +59,7 @@ message ListUsersResponse {
 }
 
 
-// https://google.aip.dev/126
+// The differing membership types we offer.
 enum MembershipType {
   // Default value. This value is unused.
   MEMBERSHIP_UNSPECIFIED = 0;

@@ -1,17 +1,17 @@
 # Writing protoc-plugins in go
 
-## info
+Liam Maguire
 
-[https://github.com/lcmaguire](https://github.com/lcmaguire)
+https://github.com/lcmaguire
+https://www.linkedin.com/in/liamcmaguire
 
-[linkedin](https://www.linkedin.com/in/liamcmaguire/)
 
 ## goal(s)
 
-- protoc 
-- protoc-plugin
-- proto
-- gRPC
+- protoc - proto compiler
+- protoc-plugin - something that plugs in to the compiler
+- proto - language-neutral, platform-neutral, extensible mechanism for serializing structured data
+- gRPC - general purpose RPC framework that uses HTTP/2.
 - go
 
 ## proto
@@ -20,28 +20,98 @@ Protocol Buffers are language-neutral, platform-neutral extensible mechanisms fo
 
 .code ../example/sample.proto
 
-## proto - enum 
-
-.code ../example/sample.proto /^enum MembershipType/,/^}/
-
-## proto fields 
+## proto messages & fields
 
 .code ../example/sample.proto /^message User/,/^}/
 
-## go representation
+## proto - enum
+
+.code ../example/sample.proto /^enum MembershipType/,/^}/
+
+
+.code ../example/sample.pb.go /^type MembershipType int32/,/^}/
+
+
+## proto - optional
+
+```
+optional string example = 7;
+```
+
+in go
+
+```
+// Example ...
+Example *string `protobuf:"bytes,7,name=example,proto3" json:"example,omitempty"`
+```
+
+## proto - repeated
+
+```
+repeated string interests = 7;
+```
+
+in go
+
+```
+// Interests contains a set of tags that this user is interested in.
+Interests []string `protobuf:"bytes,7,rep,name=interests,proto3" json:"interests,omitempty"`
+```
+
+## Go generated structs
 
 .code ../example/sample.pb.go /^type User/,/^}/
 
+## Go generated getter methods
+proto
+```
+int32 page_size = 2;
+```
+go
+```
+func (x *ListTalksRequest) GetPageSize() int32 {
+	if x != nil {
+		return x.PageSize
+	}
+	return ""
+}
+```
 
-## proto encoding
+## Using generated methods
 
-the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messages is based upon field number 
+```
+type PageSizer interface {
+	GetPageSize() int32
+}
+
+func HandlePageSize(in PageSizer, defaultPageSize int32, maxPageSize int32) (int32, error) {
+	if in.GetPageSize() < 0 {
+		return -1, errors.New("invalid cannot be less than 0")
+	}
+
+	if in.GetPageSize() > maxPageSize {
+		return maxPageSize, nil
+	}
+
+	if in.GetPageSize() == 0 {
+		return defaultPageSize, nil
+	}
+
+	return in.GetPageSize(), nil
+}
+```
+
+## Proto encoding
+
+the [encoding](https://protobuf.dev/programming-guides/encoding/) of proto messages is based upon field number & field type
 
 - numbers from 1-15 take 1 byte to encode 
 - numbers from 16 through 2047 take up 2 bytes
 
 
-## proto encoding vs json comparison 
+## Proto encoding vs json comparison
+
+// normally the only time you are concerned with having less bites is when you are on a diet.
 
 ```proto 
 message Account {
@@ -70,18 +140,18 @@ when proto encoded is only 58 bytes
 ```
 
 
-## oneofs
+## Oneofs
 
-[oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) are a way in which only one potential posibility is required
+[oneofs](https://protobuf.dev/programming-guides/proto3/#oneof) If you have a message with many fields and where at most one field will be set at the same time, you can enforce this behavior and save memory by using the oneof feature.
+
 
 .code ../example/sample.proto /^message Post/,/^}/
 
-## oneofs go 
+## Go generated oneofs
 
 .code ../example/sample.pb.go /^type Post /,/^}/
 
-## oneofs go 1
-
+## Go generated oneofs 2
 
 .code ../example/sample.pb.go /^type isPost_PostContent interface/,/^}/
 
@@ -108,7 +178,7 @@ func (*Post_Video) isPost_PostContent() {}
 func (*Post_Text) isPost_PostContent() {}
 ```
 
-## real world scenario
+## Real world use case
 
 ```proto
 message Payment {
@@ -125,63 +195,6 @@ message Payment {
   }
 }
 ```
-
-## Helpful links
-
-- [oneofs](https://protobuf.dev/programming-guides/proto3/#oneof)
-- [Well known types](https://protobuf.dev/programming-guides/dos-donts/#well-known-common)
-- [full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
-- [wellknown types](https://protobuf.dev/reference/protobuf/google.protobuf/)
-- [enums](https://protobuf.dev/programming-guides/proto3/#enum)
-
-## Services
-
-a way to define API's 
-
-.code ../example/sample.proto /^service PostService {/,/^}/
-
-will serve traffic on {baseURL}/{package}.{service}/{method}
-
-- cloud.run/example.PostService/CreatePost
-
-Streaming declarations
-``` proto
-service StreamingExample {
-  // server streaming RPC
-  rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse);
-  // Client stream RPC
-  rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse);
-  // Bidirectional stream RPC
-  rpc BidiHello(stream HelloRequest) returns (stream HelloResponse);
-}
-
-```
-
-## show service gen code
-
-Client Interface to implement
-
-.code ../example/sample_grpc.pb.go /^type PostServiceClient interface {/,/^}/
-
-Server interface to implement 
-
-.code ../example/sample_grpc.pb.go /^type PostServiceServer interface {/,/^}/
-
-
-
-## options / descriptors
-
-// todo work this into differing examples.
-
-[options](https://protobuf.dev/programming-guides/proto3/#options) a way to describe elements within your defined files, services, messages or fields.
-
-don't change the overall meaning of a declaration, but may affect the way it is handled in a particular context.
-
-- file descriptor (language specific package i.e. golang / java package)
-- service descriptor some definition/behaviour for all methods in a service
-- method descriptor scopes required, http format, idempotency
-- message/field descriptor define validation rules for a field/message
-
 
 ## gRPC
 
@@ -202,37 +215,262 @@ res, err := grpcClient.CallRpc(ctx, request)
 
 .image ./assets/grpc-flow.png
 
-- simple service definition
-- generates client and server interfaces for a large variety of languages
-- streaming supported without any additional overhead
+//- simple service definition
+//- generates client and server interfaces for a large variety of languages
+//- streaming supported without any additional overhead
 
+
+
+## Services
+
+
+.code ../example/sample.proto /^service PostService {/,/^}/
+
+will serve traffic on {baseURL}/{package}.{service}/{method}
+
+- cloud.run/example.PostService/CreatePost
+
+Streaming RPC declarations
+``` proto
+service StreamingExample {
+  // server streaming RPC
+  rpc LotsOfReplies(HelloRequest) returns (stream HelloResponse);
+  // Client stream RPC
+  rpc LotsOfGreetings(stream HelloRequest) returns (HelloResponse);
+  // Bidirectional stream RPC
+  rpc BidiHello(stream HelloRequest) returns (stream HelloResponse);
+}
+
+```
+
+## gRPC service gen code
+
+Client Interface to implement
+
+.code ../example/sample_grpc.pb.go /^type PostServiceClient interface {/,/^}/
+
+Server interface to implement 
+
+.code ../example/sample_grpc.pb.go /^type PostServiceServer interface {/,/^}/
+
+
+
+## options / descriptors
+
+[options](https://protobuf.dev/programming-guides/proto3/#options) a way to describe elements within your defined files, services, messages or fields.
+
+don't change the overall meaning of a declaration, but may affect the way it is handled in a particular context.
+
+- file descriptor (language specific package i.e. golang / java package)
+- service descriptor some definition/behaviour for all methods in a service
+- method descriptor scopes required, http format, idempotency
+- message/field descriptor define validation rules for a field/message
+
+## option examples
+
+
+Field descriptors
+```
+message User {
+  string login = 1 [DEPRECATED = true];
+  string email = 2 [(validate.rules).string.email = true];
+  ......
+}
+```
+
+Service descriptor
+
+```
+service MyService {
+  rpc MyRpc(MyRpcRequest) returns (MyRpcResponse) {
+    option (auth.scopes) = {
+      required_scopes: [
+        {has: "https://my.rpc.com/scopes/myRpc.scope:create"}]
+    };
+  }
+```
 
 ## protoc
 
-compiler for proto files
+compiler that turns proto files into language specific files.
 
 .image ./assets/protocol-buffers-concepts.png
 
 ## protoc-plugin
 
-something you can write which will plug in to the protoc compiler
+something that plugs in to the protoc compiler
 
 
 ## Why write a protoc-plugin?
 
-- get go code from your defined messages
+- additional methods / functionality for your generated code
 - gen documentation
-- additional functionality
+- generate infrastructure (i.e. Network/Firewall rules)
 - custom business cases
 
-##  Example plugins
+Example plugins
 
-- [go-setters](https://github.com/lcmaguire/protoc-gen-go-setters)
-- [validate](https://github.com/bufbuild/protoc-gen-validate)
-- [gen-doc](https://github.com/pseudomuto/protoc-gen-doc)
+- [protoc-gen-go-setters](https://github.com/lcmaguire/protoc-gen-go-setters)
+- [protoc-gen-validate](https://github.com/bufbuild/protoc-gen-validate)
+- [protoc-gen-doc](https://github.com/pseudomuto/protoc-gen-doc)
 - [protoc-gen-bq-schema](https://github.com/GoogleCloudPlatform/protoc-gen-bq-schema)
 - [protoc-gen-fieldmask](https://github.com/idodod/protoc-gen-fieldmask)
 
+
+## RealWorld scenario
+
+[protoc-gen-go-setters](https://github.com/lcmaguire/protoc-gen-go-setters)
+
+<table>
+<tr>
+<td> setters </td> <td> Standard go generated code </td>
+</tr>
+<tr>
+<td>
+
+```go
+
+message.SetAudio(&example.Audio{})
+
+With an alternate oneof val
+
+message.SetText("post")
+
+```
+
+</td>
+<td>
+
+```go
+	message.PostContent = &example.Post_Audio{
+		Audio: &example.Audio{
+			/* now populate entire audio*/
+		},
+	}
+
+	With an alternate oneof val
+
+	message.PostContent = &example.Post_Text{
+        Text: "text",
+    }
+```
+
+</td>
+</tr>
+</table>
+
+## Build pagination packages
+
+Many services take requests that accept a page_token & return a next_page_token
+
+```
+service {
+    rpc ListBooks(ListBooksRequest) returns (ListBooksResponse) {}
+}
+
+message ListBooksRequest {
+  .... rest of message
+  string page_token = 3;
+}
+
+// The response structure from listing books.
+message ListBooksResponse {
+   .... rest of message
+  string next_page_token = 2;
+}
+```
+
+## Combining it all with the Power of generics & interfaces
+
+[gRPC Pagination](https://github.com/lcmaguire/grpcpagination)
+
+
+<details><summary>NextPageToken</summary>
+
+```
+type PageTokenRequest interface {
+	proto.Message
+	SetPageToken(in string)
+}
+```
+
+</details>
+
+<details><summary>NextPageTokenResponse</summary>
+
+```
+type NextPageTokenResponse interface {
+	proto.Message
+	GetNextPageToken() string
+}
+```
+
+</details>
+
+<details><summary>gRPC func</summary>
+
+```
+// GrpcFunc represents a List gRPC func that has a requestType and a response type.
+type GrpcFunc[RequestType proto.Message, ResponseType proto.Message] func(ctx context.Context, request RequestType, opts ...grpc.CallOption) (ResponseType, error)
+```
+
+</details>
+
+<details><summary>Exit conditions</summary>
+
+```
+type FinishFunc[ResponseType proto.Message] func(ctx context.Context, response ResponseType) bool
+```
+
+</details>
+
+## Putting it all together
+
+
+```
+func PaginateNextToken[RequestType PageTokenRequest, ResponseType NextPageTokenResponse]
+    (ctx context.Context, req RequestType,
+    rpc GrpcFunc[RequestType, ResponseType],
+    exitCondition FinishFunc[ResponseType]) error {
+	for {
+		res, err := rpc(ctx, req)
+		if err != nil {
+			return err
+		}
+
+		// if exit condition met
+		if exitCondition(ctx, res) {
+			break
+		}
+
+		// if no next page return.
+		if res.GetNextPageToken() == "" {
+			break
+		}
+		// set next page token
+		req.SetPageToken(res.GetNextPageToken())
+	}
+
+	return nil
+}
+```
+
+## Using the package
+
+```
+count := 0
+maxPages := 5
+err := PaginateNextToken(ctx,
+    &example.ListExampleRequest{}, // pass in req.
+    rpc.ListExamples, // pass in RPC.
+    func(ctx context.Context, response *example.ListExamplesResponse) bool {
+	count++
+	return count == expectedCount // define your exit condition
+})
+if err != nil {
+    return nil, err
+}
+```
 
 ## invoking a plugin
 
@@ -240,8 +478,24 @@ taken from [protobuf.dev](https://protobuf.dev/getting-started/gotutorial/#compi
 ```
   protoc -I=$SRC_DIR --go_out=$DST_DIR $SRC_DIR/addressbook.proto
 ```
+The protocol compiler searches for imported files in a set of directories specified on the protocol compiler command line using the -I/--proto_path flag.
 
-personal recomendation is to use buf cli 
+```
+protoc --proto_path=IMPORT_PATH --cpp_out=DST_DIR --java_out=DST_DIR --python_out=DST_DIR --go_out=DST_DIR --ruby_out=DST_DIR --objc_out=DST_DIR --csharp_out=DST_DIR path/to/file.proto
+```
+
+from go invocation [here](https://protobuf.dev/reference/go/go-generated/#invocation)
+```
+protoc --proto_path=src \
+  --go_opt=Mprotos/buzz.proto=example.com/project/protos/fizz \
+  --go_opt=Mprotos/bar.proto=example.com/project/protos/foo \
+  protos/buzz.proto protos/bar.proto
+```
+
+## better way
+
+
+personal recommendation is to use [buf cli](https://buf.build/product/cli)
 
 ```
     buf generate
@@ -259,30 +513,30 @@ personal recomendation is to use buf cli
 .code ./examples/buf.gen.yaml
 </details>
 
-## implementing a plugin
+## musts when implementing a plugin
 
 
-- must be an executable named `protoc-gen-{plugin_name}`
-- will hang unless it recieves a [CodeGeneratorRequest](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorRequest)
+- must be an executable named `protoc-gen-{plugin_name}` for reference [plugin.h](https://protobuf.dev/reference/cpp/api-docs/google.protobuf.compiler.plugin/)
+- will hang unless it receives a [CodeGeneratorRequest](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorRequest)
  
+
+## Slides example
+
+will show a plugin I threw together today to go over some common problems faced
+
+
+## Setters go generation
+
+[setting package](https://github.com/lcmaguire/protoc-gen-go-setters/blob/main/main.go#L33)
+[using templates](https://github.com/lcmaguire/protoc-gen-go-setters/blob/main/main.go#L189)
+
 
 ## Suggestions
 
-
+- if your plugin is language specific include the language in your plugin name i.e `protoc-gen-{Language}-{Plugin}`
 - use [CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL](https://pkg.go.dev/google.golang.org/protobuf/types/pluginpb#CodeGeneratorResponse_Feature)
-
-
-## Deets
-
-- protogen.Options to parse any flags for any arguments
-- Run for implementing all files
-
-depending upon desired outcome iterate over
-- files
-- services
-- messages
-- fields of messages
-
+- Skip files not directly included in code generator request
+- use protogen.Options to parse any flags/config for your plugin
 
 
 ##  Takeaways
@@ -294,3 +548,11 @@ depending upon desired outcome iterate over
 - iterating over fields e.t.c (mention covered by james)  
 
 
+## Helpful links
+
+- [oneofs](https://protobuf.dev/programming-guides/proto3/#oneof)
+- [Well known types](https://protobuf.dev/programming-guides/dos-donts/#well-known-common)
+- [full list & mapping of scalar values](https://protobuf.dev/programming-guides/proto3/#scalar)
+- [wellknown types](https://protobuf.dev/reference/protobuf/google.protobuf/)
+- [enums](https://protobuf.dev/programming-guides/proto3/#enum)
+- [paths=source_relative](https://protobuf.dev/reference/go/go-generated/#invocation)

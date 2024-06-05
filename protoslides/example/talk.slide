@@ -1,0 +1,103 @@
+# protoc slides for example/talk
+
+
+## Service - TalkService
+
+
+## Method - ListTalks
+
+
+FullName: example.TalkService.ListTalks
+
+
+Comments:  ListTalks is used to get all talks according to any provided query params within ListTalksRequest
+
+
+
+## Method - ListTalks Request
+
+
+Type: example.ListTalksRequest
+
+
+```
+{
+  "page_size": 1,
+  "page_token": "",
+  "speaker_id": ""
+}
+```
+
+## Method - ListTalks Response
+
+Type: example.ListTalksResponse
+
+
+
+```
+{
+  "next_page_token": "",
+  "talks": [
+    {
+      "speaker": "",
+      "talk_id": "",
+      "talk_time": {
+        "nanos": 1,
+        "seconds": 1
+      }
+    }
+  ]
+}
+```
+
+
+## Method - CreateTalks
+
+
+FullName: example.TalkService.CreateTalks
+
+
+Comments:  ListTalks is used to get all talks according to any provided query params within ListTalksRequest
+
+
+
+## Method - CreateTalks Request
+
+
+Type: example.CreateTalksRequest
+
+
+```
+{
+  "talk": {
+    "speaker": "",
+    "talk_id": "",
+    "talk_time": {
+      "nanos": 1,
+      "seconds": 1
+    }
+  }
+}
+```
+
+## Method - CreateTalks Response
+
+Type: example.Talk
+
+Message Comments:  Talk represents a talk.
+
+
+
+
+```
+{
+  "speaker": "",
+  "talk_id": "",
+  "talk_time": {
+    "nanos": 1,
+    "seconds": 1
+  }
+}
+```
+
+

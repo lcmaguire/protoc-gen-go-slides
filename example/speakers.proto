@@ -1,0 +1,56 @@
+syntax = "proto3"; // specify syntax, should be specifying syntax3.
+
+// declare proto package
+package example;
+
+// specify the go package to which it will belong
+option go_package = "github.com/lcmaguire/protoc-gen-go-slides/example" ;
+
+// importing type
+import "google/protobuf/timestamp.proto";
+
+// SpeakerService used for managing speakers for talks.
+service SpeakerService {
+  // ListTalks is used to get all talks according to any provided query params within ListTalksRequest
+  rpc ListSpeakers (ListSpeakersRequest) returns (ListSpeakersResponse) {}
+
+  // CreateSpeaker is used to get all talks according to any provided query params within ListTalksRequest
+  rpc CreateSpeaker (CreateSpeakerRequest) returns (Speaker) {}
+}
+
+message ListSpeakersRequest {
+  int32 page_size = 1;
+  string speaker_name = 2;
+
+}
+
+
+message ListSpeakersResponse {
+  repeated Speaker speakers = 1;
+  string next_page_token = 2;
+}
+
+
+message CreateSpeakerRequest {
+  Speaker speaker = 1;
+}
+
+
+// Speaker represents the speaker who can present a talk.
+message Speaker {
+  // SpeakerID is the unique identifier for a speaker.
+  string speaker_id  = 1;
+
+  // DisplayName is the human readable name of a speaker.
+  string display_name  = 2;
+
+  // Approved the user has been approved to present a talk.
+  bool approved = 3;
+
+  // references to the talks performed by a talker.
+  repeated string talks = 4;
+
+  // GithubURL is the optional githubURL of a speaker.
+  optional string github_url = 5;
+
+}

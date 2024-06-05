@@ -1,0 +1,178 @@
+# protoc slides for example/sample
+
+
+## Service - UserService
+
+
+## Method - ListUsers
+
+
+FullName: example.UserService.ListUsers
+
+
+Comments:  ListUsers is used to list a new post.
+
+ will return users based upon the appropriate filters and request provided.
+ abcdefg
+
+
+
+## Method - ListUsers Request
+
+
+Type: example.ListUsersRequest
+
+
+```
+{
+  "page_size": 1,
+  "page_token": "",
+  "tag_filters": [
+    ""
+  ]
+}
+```
+
+## Method - ListUsers Response
+
+Type: example.ListUsersResponse
+
+
+
+```
+{
+  "next_page_token": "",
+  "users": [
+    {
+      "create_time": {
+        "nanos": 1,
+        "seconds": 1
+      },
+      "display_name": "",
+      "interests": [
+        ""
+      ],
+      "membership": "MEMBERSHIP_UNSPECIFIED",
+      "post_count": 1,
+      "user_id": "",
+      "verified": true
+    }
+  ]
+}
+```
+
+
+## Service - PostService
+
+
+## Method - CreatePost
+
+
+FullName: example.PostService.CreatePost
+
+
+Comments:  CreatePost is used to create a new post.
+
+
+
+## Method - CreatePost Request
+
+
+Type: example.CreatePostRequest
+
+
+```
+{
+  "post": {
+    "audio": {},
+    "author_id": "",
+    "text": "",
+    "title": "",
+    "video": {}
+  }
+}
+```
+
+## Method - CreatePost Response
+
+Type: example.Post
+
+
+
+```
+{
+  "audio": {},
+  "author_id": "",
+  "text": "",
+  "title": "",
+  "video": {}
+}
+```
+
+
+## Method - ListPosts
+
+
+FullName: example.PostService.ListPosts
+
+
+Comments:  ListPosts is used to list a new post.
+
+
+
+## Method - ListPosts Request
+
+
+Type: example.CreatePostRequest
+
+
+```
+{
+  "post": {
+    "audio": {},
+    "author_id": "",
+    "text": "",
+    "title": "",
+    "video": {}
+  }
+}
+```
+
+## Method - ListPosts Response
+
+Type: example.ListPostsResponse
+
+
+
+```
+{
+  "next_page_token": "",
+  "posts": [
+    {
+      "audio": {},
+      "author_id": "",
+      "text": "",
+      "title": "",
+      "video": {}
+    }
+  ]
+}
+```
+
+
+## Enum - example.MembershipType
+
+Desc The differing membership types we offer.
+
+
+
+Values: 
+
+- example.MEMBERSHIP_UNSPECIFIED
+
+- example.MEMBERSHIP_FREE
+
+- example.MEMBERSHIP_PREMIUM
+
+- example.MEMBERSHIP_PLATINUM
+
